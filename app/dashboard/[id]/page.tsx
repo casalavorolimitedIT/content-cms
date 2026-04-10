@@ -45,6 +45,16 @@ interface Post {
   scheduled_at?: string | null;
 }
 
+function normalizeTimes(times: any): string[] {
+  if (!times) return [];
+  if (Array.isArray(times)) return times;
+  try {
+    return JSON.parse(times);
+  } catch {
+    return [];
+  }
+}
+
 const TYPE_CONFIG = {
   article: {
     icon: News01Icon,
@@ -94,7 +104,7 @@ const Page = () => {
           supabase.from("cinema").select("*").eq("id", id).single(),
           supabase.from("events").select("*").eq("id", id).single(),
         ]);
-
+        console.log(cinema);
         if (article) {
           setPost({
             id: article.id,
@@ -354,7 +364,7 @@ const Page = () => {
               <span className="text-sm">Showtimes</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {(post.times || []).map((time, i) => (
+              {(normalizeTimes(post.times) || []).map((time, i) => (
                 <Badge key={i} variant="outline" className="px-3 py-1">
                   {time}
                 </Badge>
