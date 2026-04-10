@@ -1,20 +1,44 @@
 "use client";
+
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { useEffect, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   ArticleForm,
   CinemaForm,
   EventForm,
   ScheduleLater,
-} from "./form-elements";
-import { Label } from "./ui/label";
+  SpaForm,
+} from "@/components/form-elements";
 import { createClient } from "@/lib/supabase/client";
 import { appToast } from "@/app/custom/toast-ui";
 import { usePosts } from "@/contexts/postContext";
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import Link from "next/link";
+import { Label } from "@/components/ui/label";
 
-type PostType = "articles" | "cinema" | "events";
+export function FormField({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label>{label}</Label>
+      {children}
+      <ErrorMsg msg={error} />
+    </div>
+  );
+}
+
+type PostType = "articles" | "cinema" | "events" | "spa";
 
 const scheduleShape = {
   scheduledAt: Yup.string().when("$scheduled", {
@@ -90,6 +114,13 @@ const eventSchema = Yup.object({
   ...scheduleShape,
 });
 
+const spaSchema = Yup.object({
+  website: Yup.string().required("Website link is required"),
+  categories: Yup.mixed().required("At least one service is required"),
+  is_hidden: Yup.boolean(),
+  ...scheduleShape,
+});
+
 const scheduleInitial = { scheduledAt: "" };
 
 const articleInitial = {
@@ -125,27 +156,16 @@ const eventInitial = {
   ...scheduleInitial,
 };
 
+const spaInitial = {
+  website: "",
+  categories: [],
+  is_hidden: false,
+  ...scheduleInitial,
+};
+
 export function ErrorMsg({ msg }: { msg?: string }) {
   if (!msg) return null;
   return <p className="text-xs text-destructive mt-1">{msg}</p>;
-}
-
-export function FormField({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label>{label}</Label>
-      {children}
-      <ErrorMsg msg={error} />
-    </div>
-  );
 }
 
 export function TypeTab({
@@ -182,23 +202,28 @@ const ROLE_TO_TYPE: Record<string, PostType> = {
   article: "articles",
   cinema: "cinema",
   event: "events",
+  spa: "spa",
 };
 
 const ALL_TYPES: { value: PostType; label: string }[] = [
   { value: "articles", label: "Article" },
   { value: "cinema", label: "Cinema" },
   { value: "events", label: "Event" },
+  { value: "spa", label: "Spa" },
 ];
 
 const schemaMap = {
   articles: articleSchema,
   cinema: cinemaSchema,
   events: eventSchema,
+  spa: spaSchema,
 };
+
 const initialMap = {
   articles: articleInitial,
   cinema: cinemaInitial,
   events: eventInitial,
+  spa: spaInitial,
 };
 
 interface Website {
@@ -208,15 +233,22 @@ interface Website {
   status: string;
 }
 
-const AddPost = ({
-  onClose,
-  roles,
-  onSuccess,
-}: {
-  onClose: () => void;
-  roles: string[];
-  onSuccess?: () => void;
-}) => {
+export default function AddPostPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const params = useParams();
+
+  let roles: string[] = [];
+
+  const rolesParam = searchParams?.get("roles");
+  if (rolesParam) {
+    roles = rolesParam.split(",");
+  } else if (params?.roles) {
+    const rolesString = Array.isArray(params.roles)
+      ? params.roles[0]
+      : params.roles;
+    roles = rolesString.split(",");
+  }
   const allowedTypes = ALL_TYPES.filter((t) =>
     roles.some((r) => ROLE_TO_TYPE[r] === t.value),
   );
@@ -229,7 +261,16 @@ const AddPost = ({
   const { triggerRefresh } = usePosts();
 
   const generatePrefix = (website: Website) => {
-    const source = website.name || new URL(website.url).hostname;
+    if (!website?.name && !website?.url) return "post";
+    const source =
+      website.name ||
+      (() => {
+        try {
+          return new URL(website.url).hostname;
+        } catch {
+          return website.url;
+        }
+      })();
     return source
       .toLowerCase()
       .replace(/^www\./, "")
@@ -239,18 +280,20 @@ const AddPost = ({
       .replace(/^-|-$/g, "");
   };
 
-  const generateSlug = (title: string) =>
-    title
+  const generateSlug = (title: string) => {
+    if (!title) return `post-${Date.now()}`;
+    return title
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9\s-]/g, "")
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-");
+  };
 
   const buildFullSlug = (title: string, website: Website) => {
     const prefix = generatePrefix(website);
-    const slug = generateSlug(title);
-    return `${prefix}-${slug}`;
+    const slug = generateSlug(title || "");
+    return slug ? `${prefix}-${slug}` : prefix;
   };
 
   const fetchWebsites = async () => {
@@ -306,8 +349,8 @@ const AddPost = ({
       (w) => w.url === values.website || w.id === values.website,
     );
     const slug = selectedWebsite
-      ? buildFullSlug(values.title, selectedWebsite)
-      : generateSlug(values.title);
+      ? buildFullSlug(values.title || "", selectedWebsite)
+      : generateSlug(values.title || "");
 
     const basePayload = {
       title: values.title,
@@ -318,7 +361,7 @@ const AddPost = ({
       created_at: new Date().toISOString(),
       ...(scheduled && values.scheduledAt
         ? { scheduled_at: values.scheduledAt }
-        : { created_at: new Date().toISOString() }),
+        : {}),
     };
 
     let payload;
@@ -352,6 +395,13 @@ const AddPost = ({
           date: values.date,
           time: values.time,
           status: values.status,
+          image: imageUrl,
+        };
+        break;
+      case "spa":
+        payload = {
+          ...basePayload,
+          categories: values.categories,
           image: imageUrl,
         };
         break;
@@ -389,6 +439,10 @@ const AddPost = ({
           tableName = "events";
           successMessage = "Event created successfully!";
           break;
+        case "spa":
+          tableName = "spa";
+          successMessage = "Spa services published successfully!";
+          break;
       }
 
       await submitToSupabase(values, tableName);
@@ -401,8 +455,8 @@ const AddPost = ({
 
       resetForm();
       triggerRefresh();
-      onClose();
-      onSuccess?.();
+      router.push("/dashboard");
+      router.refresh();
     } catch (error: any) {
       console.error("Error submitting post:", error);
       appToast.error("Failed to create post", {
@@ -414,116 +468,129 @@ const AddPost = ({
   };
 
   return (
-    <>
-      <div
-        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
-        onClick={onClose}
-      />
-      <div
-        onClick={onClose}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
-        >
-          {/* Header */}
-          <div className="px-6 pt-6 pb-4 border-b">
-            <h2 className="text-base font-semibold mb-3">New Post</h2>
-            <div className="flex gap-1 bg-muted rounded-full p-1 w-fit">
-              {allowedTypes.map((t) => (
-                <TypeTab
-                  key={t.value}
-                  label={t.label}
-                  active={type === t.value}
-                  onClick={() => {
-                    setType(t.value);
-                    setScheduled(false);
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+    <div className="container mx-auto px-4 py-8">
+      {/* Header with back button */}
+      <div className="mb-6">
+        <Link href="/dashboard">
+          <Button variant="ghost" className="gap-2 mb-4">
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              strokeWidth={2}
+              className="size-4"
+            />
+            Back to Dashboard
+          </Button>
+        </Link>
+        <h1 className="text-2xl font-bold text-foreground">Create New Post</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Fill in the details below to publish a new post
+        </p>
+      </div>
 
-          {/* Form */}
-          <Formik
-            key={type}
-            validationSchema={schemaMap[type]}
-            validationContext={{ scheduled }}
-            initialValues={initialMap[type]}
-            onSubmit={handleSubmit}
-          >
-            {({ errors, touched, setFieldValue, values, isSubmitting }) => (
-              <Form className="px-6 py-5 flex flex-col gap-4">
-                {type === "articles" && (
-                  <ArticleForm
-                    errors={errors}
-                    touched={touched}
-                    setFieldValue={setFieldValue}
-                    values={values}
-                    websites={websites}
-                  />
-                )}
-                {type === "cinema" && (
-                  <CinemaForm
-                    errors={errors}
-                    touched={touched}
-                    setFieldValue={setFieldValue}
-                    values={values}
-                    websites={websites}
-                  />
-                )}
-                {type === "events" && (
-                  <EventForm
-                    errors={errors}
-                    touched={touched}
-                    setFieldValue={setFieldValue}
-                    values={values}
-                    websites={websites}
-                  />
-                )}
-
-                <div className="border-t pt-4 flex flex-col gap-4">
-                  <ScheduleLater
-                    scheduled={scheduled}
-                    onToggle={() => setScheduled((s) => !s)}
-                    errors={errors}
-                    touched={touched}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={onClose}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="bg-[#ff6900] hover:bg-[#e05e00] text-white"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                          {scheduled ? "Scheduling..." : "Publishing..."}
-                        </>
-                      ) : scheduled ? (
-                        "Schedule"
-                      ) : (
-                        "Publish"
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </Form>
-            )}
-          </Formik>
+      {/* Type selector */}
+      <div className="mb-6">
+        <label className="text-sm font-medium mb-2 block">Post Type</label>
+        <div className="flex gap-1 bg-muted rounded-full p-1 w-fit">
+          {allowedTypes.map((t) => (
+            <TypeTab
+              key={t.value}
+              label={t.label}
+              active={type === t.value}
+              onClick={() => {
+                setType(t.value);
+                setScheduled(false);
+              }}
+            />
+          ))}
         </div>
       </div>
-    </>
-  );
-};
 
-export default AddPost;
+      {/* Form */}
+      <div className="bg-white dark:bg-background rounded-xl border border-border/50 p-6">
+        <Formik
+          key={type}
+          validationSchema={schemaMap[type]}
+          validationContext={{ scheduled }}
+          initialValues={initialMap[type]}
+          onSubmit={handleSubmit}
+        >
+          {({ errors, touched, setFieldValue, values }) => (
+            <Form className="flex flex-col gap-5">
+              {type === "articles" && (
+                <ArticleForm
+                  errors={errors}
+                  touched={touched}
+                  setFieldValue={setFieldValue}
+                  values={values}
+                  websites={websites}
+                />
+              )}
+              {type === "cinema" && (
+                <CinemaForm
+                  errors={errors}
+                  touched={touched}
+                  setFieldValue={setFieldValue}
+                  values={values}
+                  websites={websites}
+                />
+              )}
+              {type === "events" && (
+                <EventForm
+                  errors={errors}
+                  touched={touched}
+                  setFieldValue={setFieldValue}
+                  values={values}
+                  websites={websites}
+                />
+              )}
+              {type === "spa" && (
+                <SpaForm
+                  errors={errors}
+                  touched={touched}
+                  setFieldValue={setFieldValue}
+                  values={values}
+                  websites={websites}
+                />
+              )}
+
+              <div className="border-t pt-5 flex flex-col gap-4">
+                <ScheduleLater
+                  scheduled={scheduled}
+                  onToggle={() => setScheduled((s) => !s)}
+                  errors={errors}
+                  touched={touched}
+                />
+                <div className="flex justify-start gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.push("/dashboard")}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-[#ff6900] hover:bg-[#e05e00] text-white"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                        {scheduled ? "Scheduling..." : "Publishing..."}
+                      </>
+                    ) : scheduled ? (
+                      "Schedule"
+                    ) : (
+                      "Publish"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </Form>
+          )}
+        </Formik>
+      </div>
+    </div>
+  );
+}

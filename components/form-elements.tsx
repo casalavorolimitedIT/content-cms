@@ -1,10 +1,22 @@
+"use client";
+
 import { useState } from "react";
 import { Label } from "recharts";
-import { ErrorMsg, FormField, HOURS, MINUTES, PERIODS } from "./add-post";
+import {
+  ErrorMsg,
+  FormField,
+  HOURS,
+  MINUTES,
+  PERIODS,
+} from "@/app/dashboard/add-post/page";
 import { ImagePicker } from "@/components/ui/image-picker";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { CalendarAdd01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
+import {
+  CalendarAdd01Icon,
+  Cancel01Icon,
+  Upload01Icon,
+} from "@hugeicons/core-free-icons";
 import { Field } from "formik";
 import { Input } from "@/components/ui/input";
 import { WYSIWYGEditor } from "@/components/ui/wysiwyg-editor";
@@ -16,6 +28,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { cn } from "@/lib/utils";
+import { Textarea } from "./ui/textarea";
 
 interface Website {
   id: number;
@@ -471,6 +484,284 @@ export function EventForm({
           </SelectContent>
         </Select>
       </FormField>
+
+      <div className="border-t pt-4 mt-2">
+        <ToggleField
+          label="Post visibility"
+          description="Turn this off to hide the post from the public view"
+          value={values.is_hidden}
+          onChange={(v) => setFieldValue("is_hidden", v)}
+          error={touched.is_hidden && errors.is_hidden}
+        />
+      </div>
+    </>
+  );
+}
+
+// Spa Form with Bulk Upload
+export function SpaForm({
+  errors,
+  touched,
+  setFieldValue,
+  values,
+  websites,
+}: any) {
+  const [bulkItems, setBulkItems] = useState("");
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
+
+  const handleBulkUpload = () => {
+    const lines = bulkItems.split("\n");
+    const parsedItems = lines
+      .filter((line) => line.trim())
+      .map((line) => {
+        const [serviceName, category, price, duration] = line
+          .split(",")
+          .map((s) => s.trim());
+        return { serviceName, category, price, duration };
+      })
+      .filter((item) => item.serviceName);
+
+    if (parsedItems.length > 0) {
+      setFieldValue("categories", parsedItems);
+      setShowBulkUpload(false);
+      setBulkItems("");
+    }
+  };
+
+  const getCategoriesArray = () => {
+    if (!values.categories) return [];
+    try {
+      return typeof values.categories === "string"
+        ? JSON.parse(values.categories)
+        : values.categories;
+    } catch {
+      return [];
+    }
+  };
+
+  const addSingleItem = () => {
+    const currentItems = getCategoriesArray();
+    setFieldValue("categories", [
+      ...currentItems,
+      { serviceName: "", category: "", price: "", duration: "" },
+    ]);
+  };
+
+  const updateItem = (index: number, field: string, value: string) => {
+    const currentItems = getCategoriesArray();
+    currentItems[index][field] = value;
+    setFieldValue("categories", [...currentItems]);
+  };
+
+  const removeItem = (index: number) => {
+    const currentItems = getCategoriesArray();
+    currentItems.splice(index, 1);
+    setFieldValue("categories", [...currentItems]);
+  };
+
+  const categoriesArray = getCategoriesArray();
+
+  const serviceCategories = [
+    { value: "massage", label: "Massage" },
+    { value: "facial", label: "Facial" },
+    { value: "body treatment", label: "Body Treatment" },
+    { value: "hair removal", label: "Hair Removal" },
+    { value: "nail care", label: "Nail Care" },
+    { value: "wellness", label: "Wellness" },
+    { value: "package", label: "Package" },
+    { value: "other", label: "Other" },
+  ];
+
+  return (
+    <>
+      <FormField
+        label="Website to update"
+        error={touched.website && errors.website}
+      >
+        <Select onValueChange={(v) => setFieldValue("website", v)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select website" />
+          </SelectTrigger>
+          <SelectContent>
+            {websites.map((website: Website) => (
+              <SelectItem key={website.id} value={website.url}>
+                {website.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormField>
+
+      {/* Services Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-semibold">Services / Treatments</label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowBulkUpload(!showBulkUpload)}
+            >
+              <HugeiconsIcon
+                icon={Upload01Icon}
+                strokeWidth={2}
+                className="size-3 mr-1"
+              />
+              {showBulkUpload ? "Manual Entry" : "Bulk Upload"}
+            </Button>
+            {!showBulkUpload && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addSingleItem}
+              >
+                + Add Service
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Bulk Upload */}
+        {showBulkUpload && (
+          <div className="space-y-3 p-4 border rounded-lg bg-muted/30">
+            <p className="text-xs text-muted-foreground">
+              CSV Format: Service Name, Category, Price (number), Duration in
+              minutes — one per line
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Categories: massage, facial, body treatment, hair removal,
+              nail_care, wellness, package, other
+            </p>
+            <Textarea
+              placeholder={`Swedish Massage, massage, 89, 60\nHydrating Facial, facial, 120, 45\nInfrared Sauna, wellness, 50, 30`}
+              value={bulkItems}
+              onChange={(e) => setBulkItems(e.target.value)}
+              className="font-mono text-sm min-h-37.5"
+            />
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowBulkUpload(false);
+                  setBulkItems("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleBulkUpload}
+                className="bg-[#ff6900] hover:bg-[#e05e00] text-white"
+              >
+                Import Services
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Manual Entry */}
+        {!showBulkUpload && categoriesArray.length > 0 && (
+          <div className="space-y-3">
+            {categoriesArray.map((item: any, index: number) => (
+              <div
+                key={index}
+                className="flex gap-3 items-start p-3 border rounded-lg"
+              >
+                <div className="flex-1 space-y-2">
+                  <Input
+                    placeholder="Service name (e.g. Swedish Massage)"
+                    value={item.serviceName}
+                    onChange={(e) =>
+                      updateItem(index, "serviceName", e.target.value)
+                    }
+                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <Select
+                      value={item.category || ""}
+                      onValueChange={(v) => updateItem(index, "category", v)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serviceCategories.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Price with $ prefix */}
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                        ₦
+                      </span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={item.price}
+                        onChange={(e) =>
+                          updateItem(index, "price", e.target.value)
+                        }
+                        className="pl-7"
+                      />
+                    </div>
+
+                    {/* Duration with "min" suffix */}
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="60"
+                        value={item.duration}
+                        onChange={(e) =>
+                          updateItem(index, "duration", e.target.value)
+                        }
+                        className="pr-10"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                        min
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeItem(index)}
+                  className="text-red-500 hover:text-red-600"
+                >
+                  <HugeiconsIcon
+                    icon={Cancel01Icon}
+                    strokeWidth={2}
+                    className="size-4"
+                  />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!showBulkUpload && categoriesArray.length === 0 && (
+          <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground">
+            <p className="text-sm">No services added yet</p>
+            <p className="text-xs mt-1">
+              Click "Add Service" or use "Bulk Upload"
+            </p>
+          </div>
+        )}
+        <ErrorMsg msg={touched.categories && errors.categories} />
+      </div>
 
       <div className="border-t pt-4 mt-2">
         <ToggleField

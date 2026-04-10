@@ -185,4 +185,45 @@
   .segment-color-7 { background-color: #14b8a6; }
   .segment-color-8 { background-color: #8b5cf6; }
   .segment-color-9 { background-color: #f97316; }
+
+  .quill-content {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .quill-content :where(p, li, blockquote, h1, h2, h3, h4, h5, h6, a, span, td, th, code) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .quill-content img,
+  .quill-content video,
+  .quill-content iframe,
+  .quill-content table {
+    display: block;
+    max-width: 100%;
+  }
+
+  .quill-content table {
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .quill-content .ql-video {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .quill-content pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+  }
+
+  .quill-content a {
+    word-break: break-all;
+  }
 }

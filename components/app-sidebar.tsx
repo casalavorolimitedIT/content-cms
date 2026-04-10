@@ -51,31 +51,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       className="border-r border-border/40 bg-background"
       {...props}
     >
-      <SidebarHeader className="px-4 py-5 border-b border-border/40">
+      <SidebarHeader className="px-4 py-6 border-b border-border/40">
         <SidebarMenu>
           <SidebarMenuItem>
             <Link
               href="/dashboard"
               onClick={handleLinkClick}
-              className="flex items-center gap-2.5 group outline-none"
+              className="group flex flex-col items-center gap-2 outline-none"
             >
-              <div className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg bg-foreground/5 ring-1 ring-border/60 transition-all duration-200 group-hover:ring-foreground/20">
-                <Image
-                  src="/logo.png"
-                  alt="Upstream logo"
-                  width={40}
-                  height={40}
-                  className="object-contain"
-                />
+              <div className="relative">
+                <div className="relative flex items-center justify-center">
+                  <Image
+                    src="/casalavoro-logo.png"
+                    alt="casalavoro logo"
+                    width={180}
+                    height={60}
+                    className="object-contain transition-transform duration-300 group-hover:scale-105"
+                    priority
+                  />
+                </div>
               </div>
-              <div className="flex flex-col leading-none">
-                <span className="text-[15px] font-semibold tracking-tight text-foreground">
-                  Upstream
-                </span>
-                <span className="text-[10px] mt-1 font-medium tracking-widest text-muted-foreground/70 uppercase">
-                  Blog CMS
-                </span>
-              </div>
+              <span className="text-[11px] font-medium tracking-wider text-muted-foreground/50 uppercase -mt-10">
+                Content Management System
+              </span>
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>

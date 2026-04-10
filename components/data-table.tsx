@@ -23,8 +23,8 @@ import {
   Calendar01Icon,
   GridIcon,
   ViewIcon,
+  Sparkle,
 } from "@hugeicons/core-free-icons";
-import DetailDrawer from "./detail-drawer";
 import { ActionModal } from "@/app/custom/action-modal";
 import { cn } from "@/lib/utils";
 import { usePosts, UnifiedPost } from "@/contexts/postContext";
@@ -87,6 +87,11 @@ const TYPE_CONFIG = {
     label: "Event",
     cls: "bg-orange-50 text-orange-600 border-orange-100",
   },
+  spa: {
+    icon: Sparkle,
+    label: "Spa",
+    cls: "bg-pink-50 text-pink-600 border-pink-100",
+  },
 };
 
 function TypeBadge({ type }: { type: UnifiedPost["type"] }) {
@@ -140,14 +145,12 @@ function Row({
   post,
   selected,
   onSelect,
-  onEdit,
   onDelete,
   onView,
 }: {
   post: UnifiedPost;
   selected: boolean;
   onSelect: () => void;
-  onEdit: () => void;
   onDelete: () => void;
   onView: () => void;
 }) {
@@ -177,7 +180,7 @@ function Row({
           ) : (
             <div className="size-9 rounded-lg bg-muted border border-border/40 flex items-center justify-center shrink-0">
               <HugeiconsIcon
-                icon={GridIcon}
+                icon={Sparkle}
                 strokeWidth={1.5}
                 className="size-4 text-muted-foreground/40"
               />
@@ -229,17 +232,6 @@ function Row({
             />
           </button>
           <button
-            onClick={onEdit}
-            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition"
-            title="Edit"
-          >
-            <HugeiconsIcon
-              icon={PencilEdit01Icon}
-              strokeWidth={2}
-              className="size-3.5"
-            />
-          </button>
-          <button
             onClick={onDelete}
             className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-red-50 hover:text-red-500 transition"
             title="Delete"
@@ -270,10 +262,6 @@ export function DataTable() {
   const [editingPost, setEditingPost] = useState<UnifiedPost | null>(null);
   const [deletingPost, setDeletingPost] = useState<UnifiedPost | null>(null);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
-
-  const handleView = (id: number) => {
-    router.push(`/dashboard/${id}`);
-  };
 
   const filtered = useMemo(() => {
     let rows = posts.filter((r) => {
@@ -350,7 +338,7 @@ export function DataTable() {
     }
   }
 
-  const types = ["All", "article", "cinema", "event"];
+  const types = ["All", "article", "cinema", "event", "spa"];
 
   if (loading) {
     return (
@@ -508,9 +496,8 @@ export function DataTable() {
                         return n;
                       })
                     }
-                    onEdit={() => setEditingPost(post)}
                     onDelete={() => setDeletingPost(post)}
-                    onView={() => handleView(post.id)}
+                    onView={() => router.push(`/dashboard/${post.id}`)}
                   />
                 ))
               ) : (
@@ -584,15 +571,6 @@ export function DataTable() {
           </button>
         </div>
       </div>
-
-      {editingPost && (
-        <DetailDrawer
-          key={editingPost.id}
-          post={editingPost}
-          onClose={() => setEditingPost(null)}
-          onSave={handleSave}
-        />
-      )}
 
       <ActionModal
         preset="delete"

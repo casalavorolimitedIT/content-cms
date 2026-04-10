@@ -61,15 +61,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
               Sign in
             </h1>
-            <p className="text-sm text-muted-foreground">
-              No account?{" "}
-              <Link
-                href="/register"
-                className="font-medium text-foreground underline-offset-4 hover:underline"
-              >
-                Create one
-              </Link>
-            </p>
+            {process.env.NODE_ENV === "development" && (
+              <p className="text-sm text-muted-foreground">
+                No account?{" "}
+                <Link
+                  href="/register"
+                  className="font-medium text-foreground underline-offset-4 hover:underline"
+                >
+                  Create one
+                </Link>
+              </p>
+            )}
           </div>
 
           {/* Form */}

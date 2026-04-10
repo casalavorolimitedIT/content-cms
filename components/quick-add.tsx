@@ -1,15 +1,16 @@
 "use client";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useState } from "react";
-import AddPost from "./add-post";
+import { useRouter } from "next/navigation";
 
 const QuickAdd = ({ roles }: { roles: string[] }) => {
-  const [postOpen, setPostOpen] = useState(false);
+  const router = useRouter();
   return (
     <>
       <div
-        onClick={() => setPostOpen(true)}
+        onClick={() =>
+          router.push(`/dashboard/add-post?roles=${roles.join(",")}`)
+        }
         className="fixed z-30 bottom-10 right-10 cursor-pointer shadow-xl shadow-black/40 border border-slate-100 bg-[#ff6900] p-4 rounded-full"
       >
         <HugeiconsIcon
@@ -18,7 +19,6 @@ const QuickAdd = ({ roles }: { roles: string[] }) => {
           className="w-6 h-6 text-white"
         />
       </div>
-      {postOpen && <AddPost roles={roles} onClose={() => setPostOpen(false)} />}
     </>
   );
 };

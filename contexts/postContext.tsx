@@ -13,7 +13,7 @@ import { appToast } from "@/app/custom/toast-ui";
 export interface UnifiedPost {
   id: number;
   title: string;
-  type: "article" | "cinema" | "event";
+  type: "article" | "cinema" | "event" | "spa";
   status: string;
   date: string;
   category: string;
@@ -68,6 +68,7 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
         { data: articles, error: e1 },
         { data: cinema, error: e2 },
         { data: events, error: e3 },
+        { data: spa, error: e4 },
       ] = await Promise.all([
         supabase
           .from("articles")
@@ -81,11 +82,16 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
           .from("events")
           .select("*")
           .order("created_at", { ascending: false }),
+        supabase
+          .from("spa")
+          .select("*")
+          .order("created_at", { ascending: false }),
       ]);
 
       if (e1) throw e1;
       if (e2) throw e2;
       if (e3) throw e3;
+      if (e4) throw e4;
 
       const articlePosts: UnifiedPost[] = (articles ?? []).map((a) => ({
         id: a.id,
@@ -129,7 +135,21 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
         tableName: "events",
       }));
 
-      setPosts([...articlePosts, ...cinemaPosts, ...eventPosts]);
+      const spaPosts: UnifiedPost[] = (spa ?? []).map((s) => ({
+        id: s.id,
+        title: "Spa",
+        type: "spa",
+        status: resolveStatus(s.scheduled_at),
+        date: new Date(s.created_at).toLocaleDateString(),
+        category: "",
+        image: s.image,
+        website: s.website,
+        is_hidden: s.is_hidden ?? false,
+        originalData: s,
+        tableName: "spa",
+      }));
+
+      setPosts([...articlePosts, ...cinemaPosts, ...eventPosts, ...spaPosts]);
     } catch (err) {
       console.error("Error fetching posts:", err);
       appToast.error("Failed to load posts");
