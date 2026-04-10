@@ -3,6 +3,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import { BulletList, ListItem } from "@tiptap/extension-list";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Button } from "./button";
 import {
@@ -35,10 +36,21 @@ export function WYSIWYGEditor({
 }: WYSIWYGEditorProps) {
   const editor = useEditor({
     extensions: [
+      BulletList,
+      ListItem,
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3],
         },
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        listItem: {},
       }),
       Link.configure({
         openOnClick: false,
@@ -136,7 +148,6 @@ export function WYSIWYGEditor({
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           disabled={disabled}
           title="Bullet List"
-          className="h-8 w-8 p-0"
         >
           <List className="w-4 h-4" />
         </Button>

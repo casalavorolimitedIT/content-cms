@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Loading03Icon,
@@ -27,15 +28,7 @@ import DetailDrawer from "./detail-drawer";
 import { ActionModal } from "@/app/custom/action-modal";
 import { cn } from "@/lib/utils";
 import { usePosts, UnifiedPost } from "@/contexts/postContext";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 export function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; dot: string }> = {
@@ -143,190 +136,20 @@ function SortHeader({
   );
 }
 
-function PreviewDrawer({
-  post,
-  open,
-  onClose,
-}: {
-  post: UnifiedPost | null;
-  open: boolean;
-  onClose: () => void;
-}) {
-  if (!post) return null;
-
-  const createMarkup = (html: string) => {
-    return { __html: html };
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-start justify-between gap-4">
-            <span className="text-xl">{post.title}</span>
-          </DialogTitle>
-          <DialogDescription>
-            <div className="flex items-center gap-2 mt-2">
-              <StatusBadge status={post.status} />
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1 text-xs font-medium",
-                  post.is_hidden ? "text-muted-foreground" : "text-emerald-600",
-                )}
-              >
-                <HugeiconsIcon
-                  icon={post.is_hidden ? EyeOff : EyeIcon}
-                  strokeWidth={2}
-                  className="size-3.5"
-                />
-                {post.is_hidden ? "Hidden" : "Visible"}
-              </span>
-            </div>
-          </DialogDescription>
-        </DialogHeader>
-
-        <Separator />
-
-        <div className="space-y-4">
-          {post.image && (
-            <div className="rounded-lg overflow-hidden">
-              <img
-                src={post.image}
-                alt={post.title}
-                className="w-full h-auto max-h-64 object-cover"
-              />
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Type:</span>
-              <div className="mt-1">
-                <TypeBadge type={post.type} />
-              </div>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Created:</span>
-              <p className="mt-1">{post.date}</p>
-            </div>
-            {post.website && (
-              <div className="col-span-2">
-                <span className="text-muted-foreground">Website:</span>
-                <a
-                  href={post.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 text-blue-600 hover:underline block truncate"
-                >
-                  {post.website}
-                </a>
-              </div>
-            )}
-          </div>
-
-          <Separator />
-
-          {post.type === "article" && (
-            <div>
-              <h3 className="font-semibold mb-2">Content</h3>
-              <div
-                className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-semibold prose-a:text-blue-600 prose-img:rounded-lg prose-pre:bg-muted prose-pre:p-4"
-                dangerouslySetInnerHTML={createMarkup(
-                  (post.originalData as any)?.content || "No content available",
-                )}
-              />
-              <div className="mt-3">
-                <span className="text-muted-foreground text-sm">Category:</span>
-                <Badge variant="secondary" className="ml-2">
-                  {(post.originalData as any)?.category || "Uncategorized"}
-                </Badge>
-              </div>
-            </div>
-          )}
-
-          {post.type === "cinema" && (
-            <div className="space-y-3">
-              <div>
-                <span className="text-muted-foreground">Genre:</span>
-                <Badge variant="secondary" className="ml-2 capitalize">
-                  {(post.originalData as any)?.category || "Unknown"}
-                </Badge>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Rating:</span>
-                <Badge variant="secondary" className="ml-2">
-                  {(post.originalData as any)?.rated || "Not Rated"}
-                </Badge>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Showtimes:</span>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {((post.originalData as any)?.times || []).map(
-                    (time: string, i: number) => (
-                      <Badge key={i} variant="outline">
-                        {time}
-                      </Badge>
-                    ),
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {post.type === "event" && (
-            <div className="space-y-3">
-              <div>
-                <span className="text-muted-foreground">Location:</span>
-                <p className="mt-1">
-                  {(post.originalData as any)?.location || "TBA"}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-muted-foreground">Date:</span>
-                  <p className="mt-1">
-                    {(post.originalData as any)?.date || "TBA"}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Time:</span>
-                  <p className="mt-1">
-                    {(post.originalData as any)?.time || "TBA"}
-                  </p>
-                </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Description:</span>
-                <div
-                  className="mt-1 prose prose-sm max-w-none dark:prose-invert"
-                  dangerouslySetInnerHTML={createMarkup(
-                    (post.originalData as any)?.description ||
-                      "No description available",
-                  )}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 function Row({
   post,
   selected,
   onSelect,
   onEdit,
   onDelete,
-  onPreview,
+  onView,
 }: {
   post: UnifiedPost;
   selected: boolean;
   onSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
-  onPreview: () => void;
+  onView: () => void;
 }) {
   return (
     <tr
@@ -361,7 +184,7 @@ function Row({
             </div>
           )}
           <button
-            onClick={onPreview}
+            onClick={onView}
             className="truncate text-left font-medium text-foreground hover:text-[#ff6900] hover:underline underline-offset-2 transition-colors"
           >
             {post.title}
@@ -395,9 +218,9 @@ function Row({
       <td className="px-3 py-3">
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
-            onClick={onPreview}
+            onClick={onView}
             className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition"
-            title="Preview"
+            title="View"
           >
             <HugeiconsIcon
               icon={ViewIcon}
@@ -434,28 +257,25 @@ function Row({
 }
 
 export function DataTable() {
+  const router = useRouter();
   const { posts, loading, deletePost, bulkDeletePosts, fetchPosts } =
     usePosts();
-
-  const [search, setSearch] = React.useState("");
-  const [typeFilter, setTypeFilter] = React.useState("All");
-  const [selected, setSelected] = React.useState<Set<number>>(new Set());
-  const [sortKey, setSortKey] = React.useState<string | null>(null);
-  const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc");
-  const [page, setPage] = React.useState(0);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(0);
   const pageSize = 10;
-  const [editingPost, setEditingPost] = React.useState<UnifiedPost | null>(
-    null,
-  );
-  const [previewPost, setPreviewPost] = React.useState<UnifiedPost | null>(
-    null,
-  );
-  const [deletingPost, setDeletingPost] = React.useState<UnifiedPost | null>(
-    null,
-  );
-  const [isBulkDeleting, setIsBulkDeleting] = React.useState(false);
+  const [editingPost, setEditingPost] = useState<UnifiedPost | null>(null);
+  const [deletingPost, setDeletingPost] = useState<UnifiedPost | null>(null);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
-  const filtered = React.useMemo(() => {
+  const handleView = (id: number) => {
+    router.push(`/dashboard/${id}`);
+  };
+
+  const filtered = useMemo(() => {
     let rows = posts.filter((r) => {
       const matchSearch =
         !search || r.title.toLowerCase().includes(search.toLowerCase());
@@ -690,7 +510,7 @@ export function DataTable() {
                     }
                     onEdit={() => setEditingPost(post)}
                     onDelete={() => setDeletingPost(post)}
-                    onPreview={() => setPreviewPost(post)}
+                    onView={() => handleView(post.id)}
                   />
                 ))
               ) : (
@@ -764,12 +584,6 @@ export function DataTable() {
           </button>
         </div>
       </div>
-
-      <PreviewDrawer
-        post={previewPost}
-        open={!!previewPost}
-        onClose={() => setPreviewPost(null)}
-      />
 
       {editingPost && (
         <DetailDrawer
