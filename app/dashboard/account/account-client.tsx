@@ -18,6 +18,7 @@ import {
   PencilEdit01Icon,
   Cancel01Icon,
   FloppyDiskIcon,
+  Sparkle,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -39,6 +40,11 @@ const ROLE_META: Record<string, { label: string; icon: any; color: string }> = {
     label: "Event",
     icon: Calendar01Icon,
     color: "bg-orange-100 text-orange-700 border-orange-200",
+  },
+  spa: {
+    label: "Spa",
+    icon: Sparkle,
+    color: "bg-pink-100 text-pink-700 border-pink-200",
   },
 };
 
