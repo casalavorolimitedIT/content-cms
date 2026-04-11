@@ -19,6 +19,16 @@ import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { Label } from "@/components/ui/label";
+import {
+  articleInitial,
+  articleSchema,
+  cinemaInitial,
+  cinemaSchema,
+  eventInitial,
+  eventSchema,
+  spaInitial,
+  spaSchema,
+} from "@/utils/schema";
 
 export function FormField({
   label,
@@ -39,129 +49,6 @@ export function FormField({
 }
 
 type PostType = "articles" | "cinema" | "events" | "spa";
-
-const scheduleShape = {
-  scheduledAt: Yup.string().when("$scheduled", {
-    is: true,
-    then: (s) => s.required("Schedule date & time is required"),
-    otherwise: (s) => s.optional(),
-  }),
-};
-
-const articleSchema = Yup.object({
-  title: Yup.string().required("Title is required"),
-  image: Yup.mixed().optional(),
-  content: Yup.string().required("Content is required"),
-  website: Yup.string().required("Website link is required"),
-  is_hidden: Yup.boolean().required(
-    "Please choose to activate or hide this post",
-  ),
-  category: Yup.string()
-    .required("Category is required")
-    .oneOf(["technology", "lifestyle", "politics", "sports", "culture"]),
-  ...scheduleShape,
-});
-
-const cinemaSchema = Yup.object({
-  title: Yup.string().required("Title is required"),
-  image: Yup.mixed().required("Image is required"),
-  category: Yup.string()
-    .required("Genre is required")
-    .oneOf([
-      "action",
-      "adventure",
-      "comedy",
-      "drama",
-      "fantasy",
-      "horror",
-      "musicals",
-      "mystery",
-      "romance",
-      "science fiction",
-      "sports",
-      "thriller",
-    ]),
-  rated: Yup.string()
-    .required("Rating is required")
-    .oneOf(["G", "PG", "PG-13", "R", "NC-17"]),
-  website: Yup.string().required("Website link is required"),
-  times: Yup.array()
-    .of(Yup.string())
-    .min(1, "At least one showtime is required"),
-  is_hidden: Yup.boolean().required(
-    "Please choose to activate or hide this post",
-  ),
-  status: Yup.string()
-    .required("Status is required")
-    .oneOf(["now showing", "coming soon"]),
-  ...scheduleShape,
-});
-
-const eventSchema = Yup.object({
-  title: Yup.string().required("Title is required"),
-  description: Yup.string().required("Description is required"),
-  location: Yup.string().required("Location is required"),
-  image: Yup.mixed().optional(),
-  date: Yup.string().required("Date is required"),
-  website: Yup.string().required("Website link is required"),
-  time: Yup.string().required("Time is required"),
-  is_hidden: Yup.boolean().required(
-    "Please choose to activate or hide this post",
-  ),
-  status: Yup.string()
-    .required("Status is required")
-    .oneOf(["upcoming", "ongoing", "past"]),
-  ...scheduleShape,
-});
-
-const spaSchema = Yup.object({
-  website: Yup.string().required("Website link is required"),
-  categories: Yup.mixed().required("At least one service is required"),
-  is_hidden: Yup.boolean(),
-  ...scheduleShape,
-});
-
-const scheduleInitial = { scheduledAt: "" };
-
-const articleInitial = {
-  title: "",
-  image: null as File | null,
-  content: "",
-  website: "",
-  category: "",
-  is_hidden: false,
-  ...scheduleInitial,
-};
-const cinemaInitial = {
-  title: "",
-  image: null as File | null,
-  category: "",
-  website: "",
-  rated: "",
-  times: [] as string[],
-  is_hidden: false,
-  status: "",
-  ...scheduleInitial,
-};
-const eventInitial = {
-  title: "",
-  description: "",
-  location: "",
-  website: "",
-  image: null as File | null,
-  date: "",
-  time: "",
-  status: "",
-  is_hidden: false,
-  ...scheduleInitial,
-};
-
-const spaInitial = {
-  website: "",
-  categories: [],
-  is_hidden: false,
-  ...scheduleInitial,
-};
 
 export function ErrorMsg({ msg }: { msg?: string }) {
   if (!msg) return null;

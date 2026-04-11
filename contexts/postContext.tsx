@@ -55,6 +55,33 @@ function resolveStatus(
   return "Live";
 }
 
+function getSpaTitle(categories: unknown): string {
+  let parsedCategories: any[] = [];
+
+  if (Array.isArray(categories)) {
+    parsedCategories = categories;
+  } else if (typeof categories === "string") {
+    try {
+      const parsed = JSON.parse(categories);
+      parsedCategories = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      parsedCategories = [];
+    }
+  }
+
+  const names = parsedCategories
+    .map(
+      (item) =>
+        item?.serviceName?.toString().trim() ||
+        item?.title?.toString().trim() ||
+        item?.name?.toString().trim() ||
+        "",
+    )
+    .filter(Boolean);
+
+  return names.join(", ") || "Spa";
+}
+
 export function PostProvider({ children }: { children: React.ReactNode }) {
   const [posts, setPosts] = useState<UnifiedPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -137,7 +164,7 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
 
       const spaPosts: UnifiedPost[] = (spa ?? []).map((s) => ({
         id: s.id,
-        title: "Spa",
+        title: getSpaTitle(s.categories),
         type: "spa",
         status: resolveStatus(s.scheduled_at),
         date: new Date(s.created_at).toLocaleDateString(),

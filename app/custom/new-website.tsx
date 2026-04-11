@@ -47,7 +47,7 @@ export function NewWebsite({ open, onOpenChange, onSuccess }: NewWebsiteProps) {
   const formik = useFormik({
     initialValues: {
       name: "",
-      url: "", // Changed from 'link' to 'url'
+      url: "",
       status: "connected",
     },
     validationSchema,

@@ -18,10 +18,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DashboardSquare01Icon,
   Globe02FreeIcons,
-  SendHorizontal,
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 
 const nav_items = [

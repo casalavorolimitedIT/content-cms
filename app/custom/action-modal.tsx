@@ -21,8 +21,6 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
-// ─── Preset Configs ───────────────────────────────────────────────────────────
-
 type ActionPreset =
   | "delete"
   | "logout"
@@ -162,31 +160,19 @@ const getButtonStyles = (preset: ActionPreset) => {
   }
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface ActionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: any;
-
-  /** Use a preset for common actions (delete, logout, deleteAccount, etc.) */
   preset?: ActionPreset;
-
-  /** Override any individual field from the preset or set custom values */
   title?: string;
   description?: string | React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   icon?: React.ReactNode;
-
-  /** Extra bullet-point warnings shown in a highlighted box */
   warningItems?: string[];
-
-  /** External loading state (e.g. from a mutation) */
   isLoading?: boolean;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ActionModal({
   open,

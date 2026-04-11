@@ -5,30 +5,18 @@ import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Loading03Icon,
-  Delete02Icon,
-  PencilEdit01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
   ArrowLeftDoubleIcon,
   ArrowRightDoubleIcon,
   Search01Icon,
   Cancel01Icon,
-  ArrowUpDownIcon,
-  ArrowUp01Icon,
-  ArrowDown01Icon,
-  EyeIcon,
-  EyeOff,
-  Film01Icon,
-  News01Icon,
-  Calendar01Icon,
-  GridIcon,
-  ViewIcon,
-  Sparkle,
 } from "@hugeicons/core-free-icons";
 import { ActionModal } from "@/app/custom/action-modal";
 import { cn } from "@/lib/utils";
 import { usePosts, UnifiedPost } from "@/contexts/postContext";
-import { Badge } from "@/components/ui/badge";
+import { SortHeader } from "./sort-header";
+import { Row } from "./row";
 
 export function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; dot: string }> = {
@@ -71,183 +59,6 @@ export function StatusBadge({ status }: { status: string }) {
   );
 }
 
-const TYPE_CONFIG = {
-  article: {
-    icon: News01Icon,
-    label: "Article",
-    cls: "bg-blue-50 text-blue-600 border-blue-100",
-  },
-  cinema: {
-    icon: Film01Icon,
-    label: "Cinema",
-    cls: "bg-violet-50 text-violet-600 border-violet-100",
-  },
-  event: {
-    icon: Calendar01Icon,
-    label: "Event",
-    cls: "bg-orange-50 text-orange-600 border-orange-100",
-  },
-  spa: {
-    icon: Sparkle,
-    label: "Spa",
-    cls: "bg-pink-50 text-pink-600 border-pink-100",
-  },
-};
-
-function TypeBadge({ type }: { type: UnifiedPost["type"] }) {
-  const cfg = TYPE_CONFIG[type];
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${cfg.cls}`}
-    >
-      <HugeiconsIcon icon={cfg.icon} strokeWidth={2} className="size-3" />
-      {cfg.label}
-    </span>
-  );
-}
-
-function SortHeader({
-  label,
-  sortKey,
-  current,
-  dir,
-  onSort,
-}: {
-  label: string;
-  sortKey: string;
-  current: string | null;
-  dir: "asc" | "desc";
-  onSort: (k: string) => void;
-}) {
-  const active = current === sortKey;
-  return (
-    <button
-      onClick={() => onSort(sortKey)}
-      className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition"
-    >
-      {label}
-      <HugeiconsIcon
-        icon={
-          active
-            ? dir === "asc"
-              ? ArrowUp01Icon
-              : ArrowDown01Icon
-            : ArrowUpDownIcon
-        }
-        strokeWidth={2}
-        className="size-3 text-muted-foreground/50"
-      />
-    </button>
-  );
-}
-
-function Row({
-  post,
-  selected,
-  onSelect,
-  onDelete,
-  onView,
-}: {
-  post: UnifiedPost;
-  selected: boolean;
-  onSelect: () => void;
-  onDelete: () => void;
-  onView: () => void;
-}) {
-  return (
-    <tr
-      className={cn(
-        "group border-b border-border/40 text-sm transition-colors hover:bg-muted/30",
-        selected && "bg-orange-50/40 dark:bg-orange-950/10",
-      )}
-    >
-      <td className="w-8 px-3 py-3">
-        <input
-          type="checkbox"
-          checked={selected}
-          onChange={onSelect}
-          className="size-4 rounded border-border accent-[#ff6900] cursor-pointer"
-        />
-      </td>
-      <td className="px-3 py-3">
-        <div className="flex items-center gap-3 max-w-65">
-          {post.image ? (
-            <img
-              src={post.image}
-              alt=""
-              className="size-9 rounded-lg object-cover border border-border/40 shrink-0"
-            />
-          ) : (
-            <div className="size-9 rounded-lg bg-muted border border-border/40 flex items-center justify-center shrink-0">
-              <HugeiconsIcon
-                icon={Sparkle}
-                strokeWidth={1.5}
-                className="size-4 text-muted-foreground/40"
-              />
-            </div>
-          )}
-          <button
-            onClick={onView}
-            className="truncate text-left font-medium text-foreground hover:text-[#ff6900] hover:underline underline-offset-2 transition-colors"
-          >
-            {post.title}
-          </button>
-        </div>
-      </td>
-      <td className="px-3 py-3">
-        <TypeBadge type={post.type} />
-      </td>
-      <td className="px-3 py-3">
-        <StatusBadge status={post.status} />
-      </td>
-      <td className="px-3 py-3">
-        <span
-          className={cn(
-            "inline-flex items-center gap-1 text-xs font-medium",
-            post.is_hidden ? "text-muted-foreground" : "text-emerald-600",
-          )}
-        >
-          <HugeiconsIcon
-            icon={post.is_hidden ? EyeOff : EyeIcon}
-            strokeWidth={2}
-            className="size-3.5"
-          />
-          {post.is_hidden ? "Hidden" : "Visible"}
-        </span>
-      </td>
-      <td className="px-3 py-3">
-        <span className="text-xs text-muted-foreground">{post.date}</span>
-      </td>
-      <td className="px-3 py-3">
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={onView}
-            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition"
-            title="View"
-          >
-            <HugeiconsIcon
-              icon={ViewIcon}
-              strokeWidth={2}
-              className="size-3.5"
-            />
-          </button>
-          <button
-            onClick={onDelete}
-            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-red-50 hover:text-red-500 transition"
-            title="Delete"
-          >
-            <HugeiconsIcon
-              icon={Delete02Icon}
-              strokeWidth={2}
-              className="size-3.5"
-            />
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
 export function DataTable() {
   const router = useRouter();
   const { posts, loading, deletePost, bulkDeletePosts, fetchPosts } =
@@ -259,7 +70,6 @@ export function DataTable() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(0);
   const pageSize = 10;
-  const [editingPost, setEditingPost] = useState<UnifiedPost | null>(null);
   const [deletingPost, setDeletingPost] = useState<UnifiedPost | null>(null);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
@@ -308,11 +118,6 @@ export function DataTable() {
       }
       return next;
     });
-  }
-
-  async function handleSave(updated: UnifiedPost) {
-    await fetchPosts();
-    setEditingPost(null);
   }
 
   async function confirmDelete() {
