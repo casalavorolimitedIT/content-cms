@@ -253,6 +253,7 @@ export default function AddPostPage() {
 
     const basePayload = {
       title: values.title,
+      subTitle: values.subTitle,
       slug: slug,
       website: values.website,
       is_hidden: values.is_hidden,
