@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Label } from "recharts";
 import {
   ErrorMsg,
   FormField,
@@ -29,6 +28,7 @@ import {
 } from "./ui/select";
 import { cn } from "@/lib/utils";
 import { Textarea } from "./ui/textarea";
+import { Label } from "./ui/label";
 
 interface Website {
   id: number;
@@ -79,10 +79,12 @@ export function ToggleField({
 }
 
 export function ShowtimePicker({
+  label = "Show times",
   value,
   onChange,
   error,
 }: {
+  label?: string;
   value: string[];
   onChange: (times: string[]) => void;
   error?: string;
@@ -100,7 +102,7 @@ export function ShowtimePicker({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label>Showtimes</Label>
+      <Label>{label}</Label>
       <div className="flex items-center gap-2">
         <select
           value={hour}
@@ -173,6 +175,71 @@ export function ShowtimePicker({
           ))}
         </div>
       )}
+      <ErrorMsg msg={error} />
+    </div>
+  );
+}
+
+export function DurationPicker({
+  value,
+  onChange,
+  error,
+}: {
+  value?: string;
+  onChange: (duration: string) => void;
+  error?: string;
+}) {
+  const parseDuration = (duration?: string) => {
+    const match = duration?.match(/^(\d{1,2})h\s(\d{2})m$/);
+    return {
+      hours: match?.[1]?.padStart(2, "0") ?? "01",
+      minutes: match?.[2] ?? "00",
+    };
+  };
+
+  const { hours, minutes } = parseDuration(value);
+
+  const updateDuration = (nextHours: string, nextMinutes: string) => {
+    onChange(`${nextHours}h ${nextMinutes}m`);
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label>Duration</Label>
+      <div className="flex items-center gap-2">
+        <select
+          value={hours}
+          onChange={(e) => {
+            const nextHours = e.target.value;
+            updateDuration(nextHours, minutes);
+          }}
+          className="h-9 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {Array.from({ length: 10 }, (_, i) =>
+            String(i + 1).padStart(2, "0"),
+          ).map((hour) => (
+            <option key={hour} value={hour}>
+              {hour}
+            </option>
+          ))}
+        </select>
+        <span className="text-sm text-muted-foreground">hr</span>
+        <select
+          value={minutes}
+          onChange={(e) => {
+            const nextMinutes = e.target.value;
+            updateDuration(hours, nextMinutes);
+          }}
+          className="h-9 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {MINUTES.map((minute) => (
+            <option key={minute} value={minute}>
+              {minute}
+            </option>
+          ))}
+        </select>
+        <span className="text-sm text-muted-foreground">min</span>
+      </div>
       <ErrorMsg msg={error} />
     </div>
   );
@@ -305,6 +372,7 @@ export function CinemaForm({
   values,
   websites,
 }: any) {
+  const [isGenreOpen, setIsGenreOpen] = useState<boolean>(false);
   return (
     <>
       <FormField label="Title" error={touched.title && errors.title}>
@@ -337,31 +405,117 @@ export function CinemaForm({
 
       <div className="grid grid-cols-2 gap-4">
         <FormField label="Genre" error={touched.category && errors.category}>
-          <Select onValueChange={(v) => setFieldValue("category", v)}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select genre" />
-            </SelectTrigger>
-            <SelectContent>
-              {[
-                "action",
-                "adventure",
-                "comedy",
-                "drama",
-                "fantasy",
-                "horror",
-                "musicals",
-                "mystery",
-                "romance",
-                "science fiction",
-                "sports",
-                "thriller",
-              ].map((g) => (
-                <SelectItem key={g} value={g} className="capitalize">
-                  {g}
-                </SelectItem>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsGenreOpen(!isGenreOpen)}
+              className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm text-left flex items-center justify-between outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <span
+                className={
+                  !values.category || values.category.length === 0
+                    ? "text-muted-foreground"
+                    : ""
+                }
+              >
+                {!values.category || values.category.length === 0
+                  ? "Select genres..."
+                  : `${values.category.length} genre${values.category.length !== 1 ? "s" : ""} selected`}
+              </span>
+              <svg
+                className={`h-4 w-4 transition-transform ${isGenreOpen ? "rotate-180" : ""}`}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {isGenreOpen && (
+              <div className="absolute z-10 w-full mt-1 rounded-md border border-input bg-background shadow-lg max-h-60 overflow-y-auto">
+                <div className="p-2">
+                  {[
+                    "action",
+                    "adventure",
+                    "comedy",
+                    "drama",
+                    "fantasy",
+                    "horror",
+                    "musicals",
+                    "mystery",
+                    "romance",
+                    "science fiction",
+                    "sports",
+                    "thriller",
+                  ].map((genre) => (
+                    <label
+                      key={genre}
+                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-muted rounded-md cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={values.category?.includes(genre) || false}
+                        onChange={() => {
+                          const currentCategories = values.category || [];
+                          if (currentCategories.includes(genre)) {
+                            setFieldValue(
+                              "category",
+                              currentCategories.filter(
+                                (g: string) => g !== genre,
+                              ),
+                            );
+                          } else {
+                            setFieldValue("category", [
+                              ...currentCategories,
+                              genre,
+                            ]);
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-input accent-[#ff6900]"
+                      />
+                      <span className="text-sm capitalize">{genre}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Display selected genres as tags */}
+          {values.category && values.category.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {values.category.map((genre: string) => (
+                <span
+                  key={genre}
+                  className="flex items-center gap-1 bg-muted text-sm px-2.5 py-1 rounded-full capitalize"
+                >
+                  {genre}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFieldValue(
+                        "category",
+                        values.category.filter((g: string) => g !== genre),
+                      );
+                    }}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      strokeWidth={2}
+                      className="w-3 h-3"
+                    />
+                  </button>
+                </span>
               ))}
-            </SelectContent>
-          </Select>
+            </div>
+          )}
+          <ErrorMsg msg={touched.category && errors.category} />
         </FormField>
 
         <FormField label="Rating" error={touched.rated && errors.rated}>
@@ -384,6 +538,13 @@ export function CinemaForm({
         value={values.times}
         onChange={(t) => setFieldValue("times", t)}
         error={touched.times && (errors.times as string)}
+        label="Show Times"
+      />
+
+      <DurationPicker
+        value={values.duration}
+        onChange={(duration) => setFieldValue("duration", duration)}
+        error={touched.duration && errors.duration}
       />
 
       <FormField label="Status" error={touched.status && errors.status}>
@@ -498,7 +659,6 @@ export function EventForm({
   );
 }
 
-// Spa Form with Bulk Upload
 export function SpaForm({
   errors,
   touched,

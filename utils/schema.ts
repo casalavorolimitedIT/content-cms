@@ -16,9 +16,10 @@ export const ArticleSchema = z.object({
 export const CinemaSchema = z.object({
   id: z.number(),
   title: z.string(),
-  category: z.string(),
+  category: z.any(),
   rated: z.string(),
-  times: z.array(z.string()),
+  times: z.array(z.string()).optional(),
+  duration: z.string(),
   status: z.string(),
   image: z.string().optional(),
   website: z.string().optional(),
@@ -77,29 +78,13 @@ export const articleSchema = Yup.object({
 export const cinemaSchema = Yup.object({
   title: Yup.string().required("Title is required"),
   image: Yup.mixed().required("Image is required"),
-  category: Yup.string()
-    .required("Genre is required")
-    .oneOf([
-      "action",
-      "adventure",
-      "comedy",
-      "drama",
-      "fantasy",
-      "horror",
-      "musicals",
-      "mystery",
-      "romance",
-      "science fiction",
-      "sports",
-      "thriller",
-    ]),
+  category: Yup.mixed().required("Genre is required"),
   rated: Yup.string()
     .required("Rating is required")
     .oneOf(["G", "PG", "PG-13", "R", "NC-17"]),
   website: Yup.string().required("Website link is required"),
-  times: Yup.array()
-    .of(Yup.string())
-    .min(1, "At least one showtime is required"),
+  times: Yup.array().of(Yup.string()).optional(),
+  duration: Yup.string().required("Duration is required"),
   is_hidden: Yup.boolean().required(
     "Please choose to activate or hide this post",
   ),
@@ -147,10 +132,11 @@ export const articleInitial = {
 export const cinemaInitial = {
   title: "",
   image: null as File | null,
-  category: "",
+  category: [],
   website: "",
   rated: "",
   times: [] as string[],
+  duration: "",
   is_hidden: false,
   status: "",
   ...scheduleInitial,

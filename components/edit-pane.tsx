@@ -35,6 +35,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { WYSIWYGEditor } from "./ui/wysiwyg-editor";
 import { ShowtimePicker } from "./form-elements";
 import { Button } from "./ui/button";
+import { useEffect, useRef, useState } from "react";
+import { ChevronDownIcon } from "lucide-react";
 
 function Section({ title }: { title: string }) {
   return (
@@ -68,6 +70,31 @@ export function EditPane({
   onSave: () => void;
   onCancel: () => void;
 }) {
+  const [isGenreOpen, setIsGenreOpen] = useState(false);
+  const genreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (genreRef.current && !genreRef.current.contains(e.target as Node)) {
+        setIsGenreOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const parseCategory = (category: unknown): string[] => {
+    if (Array.isArray(category)) return category;
+    if (typeof category === "string") {
+      try {
+        const parsed = JSON.parse(category);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return category ? [category] : [];
+      }
+    }
+    return [];
+  };
   const STATUS_OPTIONS: Partial<Record<PostType, string[]>> = {
     cinema: ["Now Showing", "Coming Soon"],
     event: ["Upcoming", "Ongoing", "Past"],
@@ -238,22 +265,56 @@ export function EditPane({
           <Section title="Cinema Details" />
           <div className="grid grid-cols-2 gap-3">
             <Field label="Genre" icon={Tag01Icon}>
-              <Select
-                value={(orig as Cinema).category ?? ""}
-                onValueChange={(v) => updateOriginal("category", v)}
-              >
-                <SelectTrigger className="h-9 bg-muted/30 border-border/60 text-sm">
-                  <SelectValue placeholder="Genre" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CINEMA_GENRES.map((g) => (
-                    <SelectItem key={g} value={g} className="capitalize">
-                      {g}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsGenreOpen((prev) => !prev)}
+                  className="w-full h-9 px-3 rounded-md bg-muted/30 border border-border/60 text-sm text-left flex items-center justify-between"
+                >
+                  <span className="truncate text-muted-foreground">
+                    {parseCategory((orig as Cinema).category).length
+                      ? parseCategory((orig as Cinema).category)
+                          .map((g) => g.charAt(0).toUpperCase() + g.slice(1))
+                          .join(", ")
+                      : "Select genres"}
+                  </span>
+                  <ChevronDownIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
+
+                {isGenreOpen && (
+                  <div className="absolute z-10 w-full mt-1 rounded-md border border-input bg-background shadow-lg max-h-60 overflow-y-auto">
+                    <div className="p-2">
+                      {CINEMA_GENRES.map((genre) => {
+                        const selected = parseCategory(
+                          (orig as Cinema).category,
+                        );
+
+                        return (
+                          <label
+                            key={genre}
+                            className="flex items-center gap-2 px-2 py-1.5 hover:bg-muted rounded-md cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selected.includes(genre)}
+                              onChange={() => {
+                                const next = selected.includes(genre)
+                                  ? selected.filter((g) => g !== genre)
+                                  : [...selected, genre];
+                                updateOriginal("category", next);
+                              }}
+                              className="h-4 w-4 rounded border-input accent-[#ff6900]"
+                            />
+                            <span className="text-sm capitalize">{genre}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </Field>
+
             <Field label="Rating">
               <Select
                 value={(orig as Cinema).rated ?? ""}
@@ -272,6 +333,7 @@ export function EditPane({
               </Select>
             </Field>
           </div>
+
           <ShowtimePicker
             value={normalizeTimes((orig as Cinema).times)}
             onChange={(times) => updateOriginal("times", times)}

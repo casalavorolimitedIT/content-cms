@@ -82,7 +82,19 @@ export function TypeTab({
 export const HOURS = Array.from({ length: 12 }, (_, i) =>
   String(i + 1).padStart(2, "0"),
 );
-export const MINUTES = ["00", "15", "30", "45"];
+export const MINUTES = [
+  "00",
+  "10",
+  "15",
+  "20",
+  "25",
+  "30",
+  "35",
+  "40",
+  "45",
+  "50",
+  "55",
+];
 export const PERIODS = ["AM", "PM"];
 
 const ROLE_TO_TYPE: Record<string, PostType> = {
@@ -269,6 +281,7 @@ export default function AddPostPage() {
           category: values.category,
           rated: values.rated,
           times: values.times,
+          duration: values.duration,
           status: values.status,
           image: imageUrl,
         };
