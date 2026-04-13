@@ -47,7 +47,7 @@ export default function RegisterPage() {
           <div className="hidden lg:flex lg:w-[42%] flex-col justify-between bg-muted/40 border-r border-border/40 px-14 py-12">
             <Image
               src="/casalavoro-logo.png"
-              alt="Upstream"
+              alt="casalavoro"
               width={110}
               height={32}
               className="object-contain object-left"
@@ -65,7 +65,7 @@ export default function RegisterPage() {
             </div>
 
             <p className="text-xs text-muted-foreground/50 tracking-wide">
-              © {new Date().getFullYear()} Upstream · Blog CMS
+              © {new Date().getFullYear()} Casalavoro · Blog CMS
             </p>
           </div>
 
@@ -74,7 +74,7 @@ export default function RegisterPage() {
               <div className="lg:hidden">
                 <Image
                   src="/casalavoro-logo.png"
-                  alt="Upstream"
+                  alt="casalavoro"
                   width={100}
                   height={30}
                   className="object-contain"
