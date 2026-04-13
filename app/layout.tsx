@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "my-supabase-boilerplate",
-  description: "A Next.js boilerplate with Supabase authentication and session management.",
+  title: "Casalavoro | Content CMS",
+  description: "Comprehensive software for managing content across all websites.",
 };
 
 export default function RootLayout({
