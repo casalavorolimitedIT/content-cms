@@ -4,7 +4,7 @@ import * as Yup from "yup";
 export const ArticleSchema = z.object({
   id: z.number(),
   title: z.string(),
-  subTitle: z.string(),
+  subTitle: z.string().optional(),
   content: z.string(),
   category: z.string(),
   image: z.string().optional(),
@@ -64,7 +64,7 @@ const scheduleShape = {
 
 export const articleSchema = Yup.object({
   title: Yup.string().required("Title is required"),
-  subTitle: Yup.string().required("Sub title is required"),
+  subTitle: Yup.string(),
   image: Yup.mixed().optional(),
   content: Yup.string().required("Content is required"),
   website: Yup.string().required("Website link is required"),

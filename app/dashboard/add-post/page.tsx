@@ -129,6 +129,7 @@ interface Website {
   id: number;
   name: string;
   url: string;
+  slug: string;
   status: string;
 }
 
@@ -159,40 +160,8 @@ export default function AddPostPage() {
   const [websites, setWebsites] = useState<Website[]>([]);
   const { triggerRefresh } = usePosts();
 
-  const generatePrefix = (website: Website) => {
-    if (!website?.name && !website?.url) return "post";
-    const source =
-      website.name ||
-      (() => {
-        try {
-          return new URL(website.url).hostname;
-        } catch {
-          return website.url;
-        }
-      })();
-    return source
-      .toLowerCase()
-      .replace(/^www\./, "")
-      .replace(/\.[a-z]{2,}$/, "")
-      .replace(/[^a-z0-9]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
-  };
-
-  const generateSlug = (title: string) => {
-    if (!title) return `post-${Date.now()}`;
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-");
-  };
-
-  const buildFullSlug = (title: string, website: Website) => {
-    const prefix = generatePrefix(website);
-    const slug = generateSlug(title || "");
-    return slug ? `${prefix}-${slug}` : prefix;
+  const buildFullSlug = (website: Website) => {
+    return website.slug ?? "post";
   };
 
   const fetchWebsites = async () => {
@@ -247,9 +216,7 @@ export default function AddPostPage() {
     const selectedWebsite = websites.find(
       (w) => w.url === values.website || w.id === values.website,
     );
-    const slug = selectedWebsite
-      ? buildFullSlug(values.title || "", selectedWebsite)
-      : generateSlug(values.title || "");
+    const slug = selectedWebsite ? buildFullSlug(selectedWebsite) : "post";
 
     const basePayload = {
       title: values.title,

@@ -127,12 +127,14 @@ const linkedWebsites = () => {
             View websites connected to your application
           </p>
         </div>
-        <Button
-          onClick={() => setOpenModal(true)}
-          className="bg-primary cursor-pointer text-white hover:bg-primary/90"
-        >
-          Add website
-        </Button>
+        {process.env.NODE_ENV === "development" && (
+          <Button
+            onClick={() => setOpenModal(true)}
+            className="bg-primary cursor-pointer text-white hover:bg-primary/90"
+          >
+            Add website
+          </Button>
+        )}
       </div>
 
       {/* Stats */}

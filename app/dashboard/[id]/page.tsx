@@ -89,6 +89,14 @@ function ModeToggle({
   );
 }
 
+interface Website {
+  id: number;
+  name: string;
+  url: string;
+  slug: string;
+  status: string;
+}
+
 export default function PostPage() {
   const params = useParams();
   const id = params?.id as string;
@@ -101,9 +109,26 @@ export default function PostPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
+  const [websites, setWebsites] = useState<Website[]>([]);
 
   const supabase = createClient();
   const { triggerRefresh } = usePosts();
+
+  const fetchWebsites = async () => {
+    const { data: websitesData, error } = await supabase
+      .from("websites")
+      .select("*")
+      .eq("status", "connected");
+
+    if (error) {
+      console.log("error getting websites", error.message);
+    }
+    setWebsites(websitesData || []);
+  };
+
+  useEffect(() => {
+    fetchWebsites();
+  }, []);
 
   useEffect(() => {
     async function fetchPost() {
@@ -402,6 +427,7 @@ export default function PostPage() {
             isSubmitting={isSubmitting}
             onSave={handleSave}
             onCancel={handleCancel}
+            websites={websites}
           />
         )}
       </div>

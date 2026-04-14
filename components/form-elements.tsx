@@ -301,10 +301,6 @@ export function ArticleForm({
         <Field as={Input} name="title" placeholder="Article title" />
       </FormField>
 
-      <FormField label="Sub Title" error={touched.subTitle && errors.subTitle}>
-        <Field as={Input} name="subTitle" placeholder="Article sub title" />
-      </FormField>
-
       <FormField
         label="Website to update"
         error={touched.website && errors.website}

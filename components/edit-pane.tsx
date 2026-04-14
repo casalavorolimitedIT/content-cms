@@ -59,6 +59,7 @@ export function EditPane({
   isSubmitting,
   onSave,
   onCancel,
+  websites,
 }: {
   form: Post;
   setForm: React.Dispatch<React.SetStateAction<Post | null>>;
@@ -69,6 +70,7 @@ export function EditPane({
   isSubmitting: boolean;
   onSave: () => void;
   onCancel: () => void;
+  websites: { id: number; name: string; url: string; status: string }[];
 }) {
   const [isGenreOpen, setIsGenreOpen] = useState(false);
   const genreRef = useRef<HTMLDivElement>(null);
@@ -165,12 +167,21 @@ export function EditPane({
       </Field>
 
       <Field label="Website" icon={Link01Icon}>
-        <Input
+        <Select
           value={form.website ?? ""}
-          onChange={(e) => updateField("website", e.target.value)}
-          placeholder="https://example.com"
-          className="h-9 bg-muted/30 border-border/60 text-sm focus:border-[#ff6900] focus:ring-[#ff6900]/20"
-        />
+          onValueChange={(v) => updateField("website", v)}
+        >
+          <SelectTrigger className="h-9 bg-muted/30 border-border/60 text-sm">
+            <SelectValue placeholder="Select a website" />
+          </SelectTrigger>
+          <SelectContent>
+            {websites.map((w) => (
+              <SelectItem key={w.id} value={w.url}>
+                {w.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
 
       {form.type !== "article" && STATUS_OPTIONS[form.type] && (
