@@ -1,5 +1,4 @@
-import { Calendar01Icon, Film01Icon, News01Icon } from "@hugeicons/core-free-icons";
-import { Sparkle } from "lucide-react";
+import { Calendar01Icon, Film01Icon, News01Icon, Sparkle } from "@hugeicons/core-free-icons";
 
 export const TYPE_CONFIG: any = {
   article: {

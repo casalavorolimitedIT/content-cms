@@ -244,7 +244,7 @@ export function ActionModal({
               </DialogTitle>
             </div>
 
-            <DialogDescription className="text-sm leading-relaxed text-muted-foreground text-left">
+            <DialogDescription className="text-sm max-h-80 overflow-scroll leading-relaxed text-muted-foreground text-left">
               {resolvedDescription}
             </DialogDescription>
 
