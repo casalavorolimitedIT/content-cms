@@ -431,20 +431,32 @@ export function EditPane({
             ]);
           };
 
-          const serviceCategories = [
-            { value: "massage", label: "Massage" },
-            { value: "facial", label: "Facial" },
-            { value: "body treatment", label: "Body Treatment" },
-            { value: "hair removal", label: "Hair Removal" },
-            { value: "nail care", label: "Nail Care" },
-            { value: "wellness", label: "Wellness" },
-            { value: "package", label: "Package" },
-            { value: "other", label: "Other" },
+          const defaultCategories = [
+            "Massage Services",
+            "Facial Services",
+            "Hamamm Bath Services",
+            "Body Scrub Services",
+            "Strip Waxing",
+            "Sugar Waxing",
+            "Pedicure Services",
+            "Manicure Services",
           ];
+
+          const categoryOptions = Array.from(
+            new Set([
+              ...defaultCategories,
+              ...services.map((s) => s.category).filter(Boolean),
+            ]),
+          );
 
           return (
             <>
               <Section title="Services / Treatments" />
+              <datalist id="spa-category-options">
+                {categoryOptions.map((cat) => (
+                  <option key={cat} value={cat} />
+                ))}
+              </datalist>
               <div className="space-y-3">
                 {services.map((item: any, index: number) => (
                   <div
@@ -461,23 +473,15 @@ export function EditPane({
                         className="h-9 bg-muted/30 border-border/60 text-sm"
                       />
                       <div className="grid grid-cols-3 gap-2">
-                        <Select
+                        <Input
+                          list="spa-category-options"
+                          placeholder="Category (pick or type new)"
                           value={item.category || ""}
-                          onValueChange={(v) =>
-                            updateService(index, "category", v)
+                          onChange={(e) =>
+                            updateService(index, "category", e.target.value)
                           }
-                        >
-                          <SelectTrigger className="h-9 bg-muted/30 border-border/60 text-sm">
-                            <SelectValue placeholder="Category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {serviceCategories.map((cat) => (
-                              <SelectItem key={cat.value} value={cat.value}>
-                                {cat.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          className="h-9 bg-muted/30 border-border/60 text-sm"
+                        />
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
                             ₦

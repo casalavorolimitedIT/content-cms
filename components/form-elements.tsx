@@ -721,16 +721,23 @@ export function SpaForm({
 
   const categoriesArray = getCategoriesArray();
 
-  const serviceCategories = [
-    { value: "massage", label: "Massage" },
-    { value: "facial", label: "Facial" },
-    { value: "body treatment", label: "Body Treatment" },
-    { value: "hair removal", label: "Hair Removal" },
-    { value: "nail care", label: "Nail Care" },
-    { value: "wellness", label: "Wellness" },
-    { value: "package", label: "Package" },
-    { value: "other", label: "Other" },
+  const defaultCategories = [
+    "Massage Services",
+    "Facial Services",
+    "Hamamm Bath Services",
+    "Body Scrub Services",
+    "Strip Waxing",
+    "Sugar Waxing",
+    "Pedicure Services",
+    "Manicure Services",
   ];
+
+  const categoryOptions = Array.from(
+    new Set([
+      ...defaultCategories,
+      ...categoriesArray.map((item: any) => item.category).filter(Boolean),
+    ]),
+  );
 
   return (
     <>
@@ -753,6 +760,11 @@ export function SpaForm({
       </FormField>
 
       {/* Services Section */}
+      <datalist id="spa-category-options">
+        {categoryOptions.map((cat) => (
+          <option key={cat} value={cat} />
+        ))}
+      </datalist>
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold">Services / Treatments</label>
@@ -791,11 +803,12 @@ export function SpaForm({
               minutes — one per line
             </p>
             <p className="text-xs text-muted-foreground">
-              Categories: massage, facial, body treatment, hair removal,
-              nail_care, wellness, package, other
+              Categories: Massage Services, Facial Services, Hamamm Bath
+              Services, Body Scrub Services, Strip Waxing, Sugar Waxing,
+              Pedicure Services, Manicure Services
             </p>
             <Textarea
-              placeholder={`Swedish Massage, massage, 89, 60\nHydrating Facial, facial, 120, 45\nInfrared Sauna, wellness, 50, 30`}
+              placeholder={`Swedish Massage, Massage Services, 89, 60\nHydrating Facial, Facial Services, 120, 45\nClassic Pedicure, Pedicure Services, 30, 45`}
               value={bulkItems}
               onChange={(e) => setBulkItems(e.target.value)}
               className="font-mono text-sm min-h-37.5"
@@ -841,21 +854,14 @@ export function SpaForm({
                     }
                   />
                   <div className="grid grid-cols-3 gap-2">
-                    <Select
+                    <Input
+                      list="spa-category-options"
+                      placeholder="Category (pick or type new)"
                       value={item.category || ""}
-                      onValueChange={(v) => updateItem(index, "category", v)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {serviceCategories.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(e) =>
+                        updateItem(index, "category", e.target.value)
+                      }
+                    />
 
                     {/* Price with $ prefix */}
                     <div className="relative">
