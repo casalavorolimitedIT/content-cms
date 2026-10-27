@@ -37,6 +37,7 @@ import { ShowtimePicker } from "./form-elements";
 import { Button } from "./ui/button";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
+import { SpaPackagesEditor, SpaView } from "./spa-packages-editor";
 
 function Section({ title }: { title: string }) {
   return (
@@ -60,6 +61,7 @@ export function EditPane({
   onSave,
   onCancel,
   websites,
+  spaView = "services",
 }: {
   form: Post;
   setForm: React.Dispatch<React.SetStateAction<Post | null>>;
@@ -71,6 +73,7 @@ export function EditPane({
   onSave: () => void;
   onCancel: () => void;
   websites: { id: number; name: string; url: string; status: string }[];
+  spaView?: SpaView;
 }) {
   const [isGenreOpen, setIsGenreOpen] = useState(false);
   const genreRef = useRef<HTMLDivElement>(null);
@@ -451,96 +454,118 @@ export function EditPane({
 
           return (
             <>
-              <Section title="Services / Treatments" />
-              <datalist id="spa-category-options">
-                {categoryOptions.map((cat) => (
-                  <option key={cat} value={cat} />
-                ))}
-              </datalist>
-              <div className="space-y-3">
-                {services.map((item: any, index: number) => (
-                  <div
-                    key={index}
-                    className="flex gap-3 items-start p-3 border rounded-lg border-border/50"
-                  >
-                    <div className="flex-1 space-y-2">
-                      <Input
-                        placeholder="Service name"
-                        value={item.serviceName || item.title || ""}
-                        onChange={(e) =>
-                          updateService(index, "serviceName", e.target.value)
-                        }
-                        className="h-9 bg-muted/30 border-border/60 text-sm"
-                      />
-                      <div className="grid grid-cols-3 gap-2">
-                        <Input
-                          list="spa-category-options"
-                          placeholder="Category (pick or type new)"
-                          value={item.category || ""}
-                          onChange={(e) =>
-                            updateService(index, "category", e.target.value)
-                          }
-                          className="h-9 bg-muted/30 border-border/60 text-sm"
-                        />
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                            ₦
-                          </span>
+              {spaView === "packages" ? (
+                <>
+                  <Section title="Spa Packages" />
+                  <SpaPackagesEditor
+                    value={(orig as Spa).packages}
+                    onChange={(packages) =>
+                      updateOriginal("packages", packages)
+                    }
+                  />
+                </>
+              ) : (
+                <>
+                  <Section title="Services / Treatments" />
+                  <datalist id="spa-category-options">
+                    {categoryOptions.map((cat) => (
+                      <option key={cat} value={cat} />
+                    ))}
+                  </datalist>
+                  <div className="space-y-3">
+                    {services.map((item: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex gap-3 items-start p-3 border rounded-lg border-border/50"
+                      >
+                        <div className="flex-1 space-y-2">
                           <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0.00"
-                            value={item.price || ""}
+                            placeholder="Service name"
+                            value={item.serviceName || item.title || ""}
                             onChange={(e) =>
-                              updateService(index, "price", e.target.value)
+                              updateService(
+                                index,
+                                "serviceName",
+                                e.target.value,
+                              )
                             }
-                            className="h-9 bg-muted/30 border-border/60 text-sm pl-7"
+                            className="h-9 bg-muted/30 border-border/60 text-sm"
                           />
+                          <div className="grid grid-cols-3 gap-2">
+                            <Input
+                              list="spa-category-options"
+                              placeholder="Category (pick or type new)"
+                              value={item.category || ""}
+                              onChange={(e) =>
+                                updateService(index, "category", e.target.value)
+                              }
+                              className="h-9 bg-muted/30 border-border/60 text-sm"
+                            />
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                                ₦
+                              </span>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={item.price || ""}
+                                onChange={(e) =>
+                                  updateService(index, "price", e.target.value)
+                                }
+                                className="h-9 bg-muted/30 border-border/60 text-sm pl-7"
+                              />
+                            </div>
+                            <div className="relative">
+                              <Input
+                                type="number"
+                                min="1"
+                                step="1"
+                                placeholder="60"
+                                value={item.duration || ""}
+                                onChange={(e) =>
+                                  updateService(
+                                    index,
+                                    "duration",
+                                    e.target.value,
+                                  )
+                                }
+                                className="h-9 bg-muted/30 border-border/60 text-sm pr-10"
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+                                min
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="relative">
-                          <Input
-                            type="number"
-                            min="1"
-                            step="1"
-                            placeholder="60"
-                            value={item.duration || ""}
-                            onChange={(e) =>
-                              updateService(index, "duration", e.target.value)
-                            }
-                            className="h-9 bg-muted/30 border-border/60 text-sm pr-10"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeService(index)}
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <HugeiconsIcon
+                            icon={Sparkle}
+                            strokeWidth={2}
+                            className="size-4"
                           />
-                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                            min
-                          </span>
-                        </div>
+                        </Button>
                       </div>
-                    </div>
+                    ))}
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      onClick={() => removeService(index)}
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={addService}
+                      className="w-full"
                     >
-                      <HugeiconsIcon
-                        icon={Sparkle}
-                        strokeWidth={2}
-                        className="size-4"
-                      />
+                      + Add Service
                     </Button>
                   </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addService}
-                  className="w-full"
-                >
-                  + Add Service
-                </Button>
-              </div>
+                </>
+              )}
             </>
           );
         })()}

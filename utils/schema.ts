@@ -50,6 +50,7 @@ export const SpaSchema = z.object({
   image: z.string().optional(),
   is_hidden: z.boolean().optional(),
   categories: z.any(),
+  packages: z.any().optional(),
   scheduled_at: z.string().nullable().optional(),
   created_at: z.string(),
 });
@@ -160,6 +161,7 @@ export const eventInitial = {
 export const spaInitial = {
   website: "",
   categories: [],
+  packages: [],
   is_hidden: false,
   ...scheduleInitial,
 };

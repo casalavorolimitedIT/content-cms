@@ -55,7 +55,7 @@ function resolveStatus(
   return "Live";
 }
 
-function getSpaTitle(categories: unknown): string {
+function getSpaTitle(categories: unknown, packages?: unknown): string {
   let parsedCategories: any[] = [];
 
   if (Array.isArray(categories)) {
@@ -79,7 +79,12 @@ function getSpaTitle(categories: unknown): string {
     )
     .filter(Boolean);
 
-  return names.join(", ") || "Spa";
+  if (names.length) return names.join(", ");
+
+  const packageNames = (Array.isArray(packages) ? packages : [])
+    .map((p) => p?.name?.toString().trim())
+    .filter(Boolean);
+  return packageNames.join(", ") || "Spa";
 }
 
 export function PostProvider({ children }: { children: React.ReactNode }) {
@@ -164,7 +169,7 @@ export function PostProvider({ children }: { children: React.ReactNode }) {
 
       const spaPosts: UnifiedPost[] = (spa ?? []).map((s) => ({
         id: s.id,
-        title: getSpaTitle(s.categories),
+        title: getSpaTitle(s.categories, s.packages),
         type: "spa",
         status: resolveStatus(s.scheduled_at),
         date: new Date(s.created_at).toLocaleDateString(),

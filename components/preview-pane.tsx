@@ -20,8 +20,19 @@ import {
   Event,
   Post,
 } from "@/app/dashboard/[id]/page";
+import {
+  formatPackagePrice,
+  parsePackages,
+  SpaView,
+} from "./spa-packages-editor";
 
-export function PreviewPane({ post }: { post: Post }) {
+export function PreviewPane({
+  post,
+  spaView = "services",
+}: {
+  post: Post;
+  spaView?: SpaView;
+}) {
   const typeConfig = TYPE_CONFIG[post.type];
   const TypeIcon: any = typeConfig.icon;
   const orig = post.originalData as any;
@@ -239,50 +250,108 @@ export function PreviewPane({ post }: { post: Post }) {
             return acc;
           }, {});
 
+          const packages = parsePackages(orig.packages);
+
           return (
             <div className="space-y-6">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="text-sm">
-                  {services.length} service{services.length !== 1 ? "s" : ""}{" "}
-                  available
-                </span>
-              </div>
-              {Object.entries(grouped).map(([category, items]) => (
-                <div key={category} className="space-y-2">
-                  <h3 className="text-xs font-semibold tracking-widest text-muted-foreground/60 capitalize">
-                    {category.replace(/_/g, " ")}
+              {spaView === "services" && (
+                <>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <span className="text-sm">
+                      {services.length} service
+                      {services.length !== 1 ? "s" : ""} available
+                    </span>
+                  </div>
+                  {Object.entries(grouped).map(([category, items]) => (
+                    <div key={category} className="space-y-2">
+                      <h3 className="text-xs font-semibold tracking-widest text-muted-foreground/60 capitalize">
+                        {category.replace(/_/g, " ")}
+                      </h3>
+                      <div className="divide-y divide-border/40 rounded-xl border border-border/50 overflow-hidden">
+                        {items.map((item: any, i: number) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-background hover:bg-muted/30 transition-colors"
+                          >
+                            <span className="text-sm font-medium text-foreground">
+                              {item.serviceName || item.title}
+                            </span>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              {item.duration && (
+                                <span className="flex items-center gap-1">
+                                  <HugeiconsIcon
+                                    icon={Clock01Icon}
+                                    strokeWidth={2}
+                                    className="size-3.5"
+                                  />
+                                  {item.duration} min
+                                </span>
+                              )}
+                              {item.price && (
+                                <span className="font-semibold text-foreground">
+                                  ₦{Number(item.price).toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {spaView === "packages" && packages.length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground">
+                  <p className="text-sm">No packages added yet</p>
+                </div>
+              )}
+
+              {spaView === "packages" && packages.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-xs font-semibold tracking-widest text-muted-foreground/60 uppercase">
+                    Spa Packages
                   </h3>
-                  <div className="divide-y divide-border/40 rounded-xl border border-border/50 overflow-hidden">
-                    {items.map((item: any, i: number) => (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {packages.map((pkg, i) => (
                       <div
                         key={i}
-                        className="flex items-center justify-between px-4 py-3 bg-white dark:bg-background hover:bg-muted/30 transition-colors"
+                        className="flex flex-col overflow-hidden rounded-xl border border-border/50 bg-white dark:bg-background"
                       >
-                        <span className="text-sm font-medium text-foreground">
-                          {item.serviceName || item.title}
-                        </span>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {item.duration && (
-                            <span className="flex items-center gap-1">
-                              <HugeiconsIcon
-                                icon={Clock01Icon}
-                                strokeWidth={2}
-                                className="size-3.5"
-                              />
-                              {item.duration} min
-                            </span>
+                        {pkg.image && (
+                          <img
+                            src={pkg.image}
+                            alt={pkg.name}
+                            className="h-40 w-full object-cover"
+                          />
+                        )}
+                        <div className="flex flex-1 flex-col gap-3 p-4">
+                          <h4 className="text-center font-serif text-base uppercase tracking-wide">
+                            {pkg.name || "Untitled package"}
+                          </h4>
+                          <ul className="space-y-1 text-xs uppercase text-muted-foreground">
+                            {(pkg.items ?? [])
+                              .filter(Boolean)
+                              .map((item, j) => (
+                                <li key={j}>• {item}</li>
+                              ))}
+                          </ul>
+                          {pkg.tagline && (
+                            <p className="text-[11px] font-semibold uppercase">
+                              {pkg.tagline}
+                            </p>
                           )}
-                          {item.price && (
-                            <span className="font-semibold text-foreground">
-                              ₦{Number(item.price).toFixed(2)}
-                            </span>
+                          {pkg.price && (
+                            <p className="mt-auto text-right font-serif text-2xl">
+                              {formatPackagePrice(pkg.price)}
+                            </p>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
             </div>
           );
         })()}

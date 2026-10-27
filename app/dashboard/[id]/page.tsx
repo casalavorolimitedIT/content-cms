@@ -25,6 +25,7 @@ import {
 } from "@/utils/schema";
 import { PreviewPane } from "@/components/preview-pane";
 import { EditPane } from "@/components/edit-pane";
+import { SpaView, SpaViewToggle } from "@/components/spa-packages-editor";
 
 export type Spa = z.infer<typeof SpaSchema>;
 export type Article = z.infer<typeof ArticleSchema>;
@@ -110,6 +111,7 @@ export default function PostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
   const [websites, setWebsites] = useState<Website[]>([]);
+  const [spaView, setSpaView] = useState<SpaView>("services");
 
   const supabase = createClient();
   const { triggerRefresh } = usePosts();
@@ -322,6 +324,7 @@ export default function PostPage() {
         updatedOriginal = {
           ...updatedOriginal,
           categories: (form.originalData as any).categories,
+          packages: (form.originalData as any).packages ?? [],
         };
       }
 
@@ -413,9 +416,15 @@ export default function PostPage() {
         </div>
       </div>
 
+      {form.type === "spa" && (
+        <div className="mb-4">
+          <SpaViewToggle value={spaView} onChange={setSpaView} />
+        </div>
+      )}
+
       <div className="min-w-0 bg-white dark:bg-background rounded-xl border border-border/50 p-6">
         {mode === "preview" ? (
-          <PreviewPane post={form} />
+          <PreviewPane post={form} spaView={spaView} />
         ) : (
           <EditPane
             form={form}
@@ -428,6 +437,7 @@ export default function PostPage() {
             onSave={handleSave}
             onCancel={handleCancel}
             websites={websites}
+            spaView={spaView}
           />
         )}
       </div>

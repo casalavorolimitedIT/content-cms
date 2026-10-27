@@ -270,6 +270,7 @@ export default function AddPostPage() {
         payload = {
           ...basePayload,
           categories: values.categories,
+          packages: values.packages,
           image: imageUrl,
         };
         break;
